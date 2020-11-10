@@ -892,6 +892,33 @@ namespace System.Collections.Generic {
         }
 
         /// <summary>
+        /// Remove elements that match specified predicate and emit the removed elements as an 
+        /// enumerable. The enumerable must be completely consumed to ensure all matching elements
+        /// are removed.
+        /// </summary>
+        /// <param name="match"></param>
+        /// <returns></returns>
+        public IEnumerable<T> RemoveWhereEnumerator(Predicate<T> match) {
+            if (match == null) {
+                throw new ArgumentNullException("match");
+            }
+            Contract.EndContractBlock();
+
+            for (int i = 0; i < m_lastIndex; i++) {
+                if (m_slots[i].hashCode >= 0) {
+                    // cache value in case delegate removes it
+                    T value = m_slots[i].value;
+                    if (match(value)) {
+                        // check again that remove actually removed it
+                        if (Remove(value)) {
+                            yield return value;
+                        }
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
         /// Gets the IEqualityComparer that is used to determine equality of keys for 
         /// the HashSet.
         /// </summary>
